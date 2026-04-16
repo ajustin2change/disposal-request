@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IT Asset Disposal Request</title>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCON6TTMYVI7Btc_EB-X9Y5OXGX4KRKdYM",
+      authDomain: "assettrack-67dd3.firebaseapp.com",
+      projectId: "assettrack-67dd3",
+      storageBucket: "assettrack-67dd3.firebasestorage.app",
+      messagingSenderId: "332759989629",
+      appId: "1:332759989629:web:b63cf04c549acfff872014"
+    });
+    var db = firebase.firestore();
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#f4f6f9; --surface:#ffffff; --surface2:#f8fafc;
+      --border:#e2e8f0; --border-focus:#3b82f6;
+      --text:#0f172a; --text-muted:#64748b; --text-light:#94a3b8;
+      --accent:#1d4ed8; --accent-light:#dbeafe;
+      --success:#166534; --success-bg:#dcfce7; --success-border:#bbf7d0;
+      --danger:#991b1b; --danger-bg:#fee2e2; --danger-border:#fecaca;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08); --shadow-md:0 4px 16px rgba(0,0,0,.08);
+      --radius:12px; --radius-sm:8px; --radius-xs:5px;
+    }
+    html { font-size:16px; }
+    body { font-family:'Geist','Helvetica Neue',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:40px 20px 80px; line-height:1.5; }
+    .page-header { max-width:680px; margin:0 auto 36px; }
+    .org-label { font-size:11px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-light); margin-bottom:14px; }
+    .page-title { font-size:30px; font-weight:700; color:var(--text); letter-spacing:-0.5px; margin-bottom:8px; line-height:1.2; }
+    .page-subtitle { font-size:14px; color:var(--text-muted); line-height:1.6; max-width:520px; }
+    .divider { width:40px; height:3px; background:var(--accent); border-radius:2px; margin:16px 0; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md); max-width:680px; margin:0 auto 20px; overflow:hidden; }
+    .card-header { padding:20px 28px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+    .card-icon { width:34px; height:34px; border-radius:8px; background:var(--accent-light); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+    .card-title { font-size:15px; font-weight:600; color:var(--text); }
+    .card-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .card-body { padding:22px 28px; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .field-row.full { grid-template-columns:1fr; }
+    .field-row.three { grid-template-columns:2fr 1fr; }
+    .field-row.four { grid-template-columns:1fr 1fr 1fr 1fr; }
+    @media(max-width:560px){ .field-row,.field-row.three,.field-row.four { grid-template-columns:1fr; } }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    label { font-size:13px; font-weight:500; color:var(--text); }
+    .required-star { color:#ef4444; margin-left:2px; }
+    .field-hint { font-size:11px; color:var(--text-light); margin-top:-2px; }
+    input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+      width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+      font-family:inherit; font-size:14px; color:var(--text); background:var(--surface2);
+      transition:border-color .15s, box-shadow .15s; outline:none; appearance:none;
+    }
+    select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; }
+    input:focus, select:focus, textarea:focus { border-color:var(--border-focus); box-shadow:0 0 0 3px rgba(59,130,246,.10); }
+    input.error, select.error, textarea.error { border-color:#ef4444; }
+    input::placeholder, textarea::placeholder { color:var(--text-light); }
+    textarea { resize:vertical; min-height:96px; }
+    .field-error { display:none; align-items:center; gap:5px; font-size:12px; color:var(--danger); margin-top:2px; }
+    .field-error.show { display:flex; }
+    .campus-badge { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-left:8px; }
+    .campus-hc { background:#fff3e0; color:#b45309; border:1px solid #fcd34d; }
+    .campus-norman { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+    .notice { background:var(--accent-light); border:1px solid #bfdbfe; border-radius:var(--radius-sm); padding:12px 16px; font-size:13px; color:#1e40af; margin-bottom:16px; line-height:1.5; }
+    .serial-input-row { display:flex; gap:10px; margin-bottom:8px; }
+    .serial-input-row input { flex:1; font-family:'Geist Mono',monospace; letter-spacing:0.5px; }
+    .btn-add-serial { padding:10px 20px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; transition:opacity .15s; }
+    .btn-add-serial:hover { opacity:.88; }
+    .serial-paste-hint { font-size:12px; color:var(--text-light); margin-bottom:14px; }
+    .item-table-empty { padding:24px; text-align:center; font-size:13px; color:var(--text-light); background:var(--surface2); border:1.5px dashed var(--border); border-radius:var(--radius-sm); }
+    .item-table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-sm); }
+    .item-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .item-table thead th { padding:10px 12px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); background:var(--surface2); border-bottom:1px solid var(--border); }
+    .item-table tbody tr { border-bottom:1px solid var(--border); }
+    .item-table tbody tr:last-child { border-bottom:none; }
+    .item-table tbody td { padding:8px 10px; vertical-align:middle; }
+    .item-serial { font-family:'Geist Mono',monospace; font-size:12px; font-weight:500; letter-spacing:.5px; white-space:nowrap; }
+    .item-select { width:100%; padding:6px 28px 6px 9px; border:1.5px solid var(--border); border-radius:6px; font-family:inherit; font-size:12px; color:var(--text); background:var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center; appearance:none; transition:border-color .15s; }
+    .item-select:focus { border-color:var(--border-focus); outline:none; box-shadow:0 0 0 3px rgba(59,130,246,.10); }
+    .item-select.error { border-color:#ef4444; }
+    .item-other-input { margin-top:5px; width:100%; padding:5px 9px; border:1.5px solid var(--border); border-radius:6px; font-family:inherit; font-size:12px; color:var(--text); background:var(--surface2); }
+    .item-other-input:focus { border-color:var(--border-focus); outline:none; }
+    .item-other-input.error { border-color:#ef4444; }
+    .tag-group { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .tag-radio-label { display:flex; align-items:center; gap:5px; font-size:12px; cursor:pointer; padding:4px 10px; border:1.5px solid var(--border); border-radius:20px; transition:border-color .15s, background .15s; white-space:nowrap; }
+    .tag-radio-label input[type="radio"] { width:13px; height:13px; cursor:pointer; accent-color:var(--accent); }
+    .tag-radio-label:has(input:checked) { border-color:var(--accent); background:var(--accent-light); }
+    .tag-input-wrap { margin-top:6px; }
+    .tag-number-input { width:100%; padding:5px 9px; border:1.5px solid var(--border); border-radius:6px; font-family:'Geist Mono',monospace; font-size:12px; color:var(--text); background:var(--surface2); }
+    .tag-number-input:focus { border-color:var(--border-focus); outline:none; }
+    .tag-number-input.error { border-color:#ef4444; }
+    .remove-btn { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--border); background:transparent; cursor:pointer; font-size:16px; color:var(--text-light); display:flex; align-items:center; justify-content:center; transition:border-color .15s, color .15s; line-height:1; }
+    .remove-btn:hover { border-color:#fecaca; color:#ef4444; }
+    .item-count-badge { font-size:12px; color:var(--text-muted); margin-top:10px; }
+    .counts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:480px){ .counts-grid { grid-template-columns:1fr; } }
+    .count-field { display:flex; flex-direction:column; gap:6px; }
+    .count-field label { font-size:13px; font-weight:500; color:var(--text); }
+    .count-combo input { text-align:center; font-size:16px; font-weight:500; }
+    .submit-area { max-width:680px; margin:0 auto; text-align:center; padding:8px 0 0; }
+    .btn-submit { padding:14px 44px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; letter-spacing:.2px; transition:opacity .15s, transform .1s; box-shadow:0 2px 8px rgba(29,78,216,.25); }
+    .btn-submit:hover { opacity:.92; }
+    .btn-submit:active { transform:scale(.99); }
+    .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
+    .submit-note { margin-top:10px; font-size:12px; color:var(--text-light); }
+    .success-card { display:none; max-width:680px; margin:0 auto; background:var(--surface); border:1px solid var(--success-border); border-radius:var(--radius); padding:48px 36px; text-align:center; box-shadow:var(--shadow-md); }
+    .success-card.show { display:block; }
+    .success-icon { width:56px; height:56px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 16px; color:var(--success); border:2px solid var(--success-border); }
+    .success-title { font-size:22px; font-weight:700; color:var(--text); margin-bottom:10px; }
+    .success-body { font-size:14px; color:var(--text-muted); line-height:1.7; margin-bottom:18px; max-width:440px; margin-left:auto; margin-right:auto; }
+    .success-ref { font-size:13px; font-weight:600; color:var(--accent); margin-bottom:22px; font-family:'Geist Mono',monospace; }
+    .btn-download { padding:10px 24px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; margin:4px; }
+    .btn-new { padding:10px 24px; background:transparent; color:var(--text-muted); border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:13px; cursor:pointer; margin:4px; }
+    .page-footer { max-width:680px; margin:32px auto 0; text-align:center; font-size:11px; color:var(--text-light); letter-spacing:.5px; }
+  </style>
+</head>
+<body>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// SHARED CONFIG — paste updated values from AssetTrack Settings
+// Format: {name, address, campus}  campus = "Norman" | "HC" | ""
+// ════════════════════════════════════════════════════════════
+var LOCATIONS = [
+  // Example — replace with your actual locations:
+  // { name: "Bizzell Library", address: "401 W Brooks St, Norman, OK 73019", campus: "Norman" },
+  // { name: "OUHSC Research Tower", address: "800 N Research Pkwy, Oklahoma City, OK 73104", campus: "HC" },
+];
+
+// Format: {name, email, phone, department}
+var REQUESTORS = [
+  // Example — replace with your actual requestors:
+  // { name: "Jane Smith", email: "jane.smith@ou.edu", phone: "(405) 555-1234", department: "Biochemistry" },
+];
+// ════════════════════════════════════════════════════════════
+</script>
+
+  <div class="page-header">
+    <div class="org-label">Information Technology</div>
+    <h1 class="page-title">IT Asset Disposal Request</h1>
+    <div class="divider"></div>
+    <p class="page-subtitle">Use this form to request pickup of IT equipment for disposal. A member of our team will follow up to schedule your pickup.</p>
+  </div>
+
+  <form id="disposal-form" novalidate>
+
+    <!-- Contact Info -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">👤</div>
+        <div>
+          <div class="card-title">Contact Information</div>
+          <div class="card-desc">How we'll reach you about your request</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-row" style="margin-bottom:14px;">
+          <div class="field">
+            <label for="req-name">Full Name <span class="required-star">*</span></label>
+            <input type="text" id="req-name" name="req-name" placeholder="e.g. Jane Smith" autocomplete="name" list="req-name-list"/>
+            <datalist id="req-name-list"></datalist>
+            <div class="field-error" id="req-name-error">Please enter your name.</div>
+          </div>
+          <div class="field">
+            <label for="department">Department</label>
+            <input type="text" id="department" name="department" placeholder="e.g. Biochemistry" list="dept-list"/>
+            <datalist id="dept-list"></datalist>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="email">Email Address <span class="required-star">*</span></label>
+            <input type="email" id="email" name="email" placeholder="you@ou.edu" autocomplete="email" list="email-list"/>
+            <datalist id="email-list"></datalist>
+            <div class="field-error" id="email-error">Please enter a valid email address.</div>
+          </div>
+          <div class="field">
+            <label for="phone">Phone Number <span class="required-star">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" autocomplete="tel"/>
+            <div class="field-error" id="phone-error">Please enter a phone number.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pickup Location -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📍</div>
+        <div>
+          <div class="card-title">Pickup Location</div>
+          <div class="card-desc">Where should we come to collect the equipment?</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-row three" style="margin-bottom:14px;">
+          <div class="field">
+            <label for="building">
+              Building / Location <span class="required-star">*</span>
+              <span id="campus-badge" style="display:none;"></span>
+            </label>
+            <input type="text" id="building" name="building" placeholder="e.g. Bizzell Library" list="building-list"/>
+            <datalist id="building-list"></datalist>
+            <div class="field-error" id="building-error">Please enter a building or location.</div>
+          </div>
+          <div class="field">
+            <label for="room">Room Number <span class="required-star">*</span></label>
+            <input type="text" id="room" name="room" placeholder="e.g. 214B"/>
+            <div class="field-error" id="room-error">Please enter a room number.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Serial Numbers -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">💻</div>
+        <div>
+          <div class="card-title">Equipment Serial Numbers</div>
+          <div class="card-desc">List the serial numbers of data-bearing items (laptops, desktops, phones, drives)</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="notice">
+          <strong>Data-bearing items only.</strong> Only list items that contain or previously contained data — laptops, desktops, tablets, phones, external drives, and servers. Monitors, printers, and non-data items do not need serial numbers listed here.
+        </div>
+        <div class="serial-input-row">
+          <input type="text" id="serial-input" placeholder="Type or scan a serial number, then press Enter" style="font-family:'Geist Mono',monospace; letter-spacing:0.5px;"/>
+          <button type="button" class="btn-add-serial" onclick="addSerial()">Add Item</button>
+        </div>
+        <div class="serial-paste-hint" id="paste-hint">💡 Tip: Paste a copied column from Excel to add multiple serials at once.</div>
+        <div id="item-table-empty" class="item-table-empty">No items added yet. Enter a serial number above to begin.</div>
+        <div id="item-table-wrap" class="item-table-wrap" style="display:none;">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th style="width:28px;">#</th>
+                <th style="min-width:140px;">Serial Number</th>
+                <th style="min-width:130px;">Manufacturer <span style="color:#ef4444;">*</span></th>
+                <th style="min-width:120px;">Machine Type <span style="color:#ef4444;">*</span></th>
+                <th style="min-width:140px;">Asset Tag? <span style="color:#ef4444;">*</span></th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="item-tbody"></tbody>
+          </table>
+        </div>
+        <div class="item-count-badge" id="item-count"></div>
+      </div>
+    </div>
+
+    <!-- Non-Serialized Item Counts -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📦</div>
+        <div>
+          <div class="card-title">Non-Serialized Item Counts</div>
+          <div class="card-desc">Items that don't require serial numbers — enter 0 if none</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="counts-grid">
+          <div class="count-field">
+            <label for="count-monitors">LCD / Flat Panel Monitors</label>
+            <div class="field-hint">Type a number or pick from the list</div>
+            <input type="number" id="count-monitors" name="count-monitors" min="0" max="999" value="0"/>
+          </div>
+          <div class="count-field">
+            <label for="count-printers">Printers</label>
+            <div class="field-hint">Type a number or pick from the list</div>
+            <input type="number" id="count-printers" name="count-printers" min="0" max="99" value="0"/>
+          </div>
+          <div class="count-field">
+            <label for="count-misc">Boxes of Miscellaneous Items</label>
+            <div class="field-hint">Type a number or pick from the list</div>
+            <input type="number" id="count-misc" name="count-misc" min="0" max="99" value="0"/>
+          </div>
+          <div class="count-field">
+            <label for="count-drives">Boxes of Hard Drives / Data Devices</label>
+            <div class="field-hint">USB drives, floppy disks, CDs, etc.</div>
+            <input type="number" id="count-drives" name="count-drives" min="0" max="99" value="0"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📝</div>
+        <div>
+          <div class="card-title">Additional Information</div>
+          <div class="card-desc">Anything else we should know about this pickup</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-row full">
+          <div class="field">
+            <textarea id="notes" name="notes" placeholder="e.g. Equipment is in boxes in the hallway, please call ahead, specific access instructions…" rows="4"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-area">
+      <button type="submit" class="btn-submit" id="submit-btn">Submit Disposal Request</button>
+      <div class="submit-note">Submitting will generate a CSV file — provide it to IT staff to create your ticket.</div>
+    </div>
+
+  </form>
+
+  <!-- Success state -->
+  <div class="success-card" id="success-card">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Request Submitted</div>
+    <p class="success-body">Your disposal request has been packaged as a CSV file. Please send or hand this file to your IT staff — they'll use it to create your pickup ticket.</p>
+    <div class="success-ref" id="success-ref"></div>
+    <div>
+      <button class="btn-download" onclick="downloadAgain()">⬇ Download CSV Again</button>
+      <button class="btn-new" onclick="resetForm()">Submit Another Request</button>
+    </div>
+  </div>
+
+  <div class="page-footer">IT Asset Disposal Request &nbsp;·&nbsp; Generated by AssetTrack</div>
+
+  <script>
+    // ── Populate datalists from config ───────────────────────────────
+    // Load locations and requestors from Firestore (falls back to static LOCATIONS/REQUESTORS)
+    var _locations = LOCATIONS.slice();
+    var _requestors = REQUESTORS.slice();
+
+    function populateLists() {
+      var bList = document.getElementById('building-list');
+      bList.innerHTML = '';
+      _locations.forEach(function(l) {
+        var opt = document.createElement('option'); opt.value = l.name; bList.appendChild(opt);
+      });
+      var nameList = document.getElementById('req-name-list');
+      var emailList = document.getElementById('email-list');
+      nameList.innerHTML = ''; emailList.innerHTML = '';
+      var deptSet = new Set();
+      _requestors.forEach(function(r) {
+        if (r.name)  { var o1 = document.createElement('option'); o1.value = r.name;  nameList.appendChild(o1); }
+        if (r.email) { var o2 = document.createElement('option'); o2.value = r.email; emailList.appendChild(o2); }
+        if (r.department) deptSet.add(r.department);
+      });
+      var deptList = document.getElementById('dept-list');
+      deptList.innerHTML = '';
+      deptSet.forEach(function(d) { var o = document.createElement('option'); o.value = d; deptList.appendChild(o); });
+    }
+
+    // Load from Firestore
+    db.collection('locations').get().then(function(snap) {
+      if (!snap.empty) { _locations = snap.docs.map(function(d){ return d.data(); }); populateLists(); }
+    }).catch(function(){ populateLists(); });
+    db.collection('requestors').get().then(function(snap) {
+      if (!snap.empty) { _requestors = snap.docs.map(function(d){ return d.data(); }); populateLists(); }
+    }).catch(function(){ populateLists(); });
+
+    populateLists(); // initial render with static data
+
+    // ── Campus autofill when building is selected ────────────────────
+    document.getElementById('building').addEventListener('input', function() {
+      var val = this.value.trim();
+      var loc = _locations.find(function(l) { return l.name === val; });
+      var badge = document.getElementById('campus-badge');
+      if (loc && loc.campus) {
+        badge.textContent = loc.campus;
+        badge.className = 'campus-badge ' + (loc.campus === 'HC' ? 'campus-hc' : 'campus-norman');
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    });
+
+    // ── Autofill contact fields when name or email is selected ───────
+    function autofillFromRequestor(field, value) {
+      var r = _requestors.find(function(x) { return x[field] === value; });
+      if (!r) return;
+      if (r.name  && !document.getElementById('req-name').value)  document.getElementById('req-name').value  = r.name;
+      if (r.email && !document.getElementById('email').value)     document.getElementById('email').value     = r.email;
+      if (r.phone && !document.getElementById('phone').value)     document.getElementById('phone').value     = r.phone;
+      if (r.department && !document.getElementById('department').value) document.getElementById('department').value = r.department;
+    }
+    document.getElementById('req-name').addEventListener('change', function() { autofillFromRequestor('name', this.value.trim()); });
+    document.getElementById('email').addEventListener('change',    function() { autofillFromRequestor('email', this.value.trim()); });
+
+    // ── Items array ──────────────────────────────────────────────────
+    var items = [];
+    var lastCsvData = null;
+    var lastFileName = null;
+
+    var MANUFACTURERS = ['Apple','Dell','HP','Lenovo','Microsoft','Samsung','Acer','Asus','Toshiba','LG','Other'];
+    var MACHINE_TYPES = ['Laptop','Desktop','MacBook','iMac','Mac Mini','Mac Pro','iPad','iPhone','Android Phone','Android Tablet','Surface','Server','External Drive','Monitor','Printer','Other'];
+
+    document.getElementById('serial-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); addSerial(); }
+    });
+    document.getElementById('serial-input').addEventListener('paste', function(e) {
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData('text');
+      var lines = text.split(/[\r\n\t]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+      if (lines.length > 1) {
+        var added = 0;
+        lines.forEach(function(line) {
+          var serial = line.toUpperCase();
+          if (serial && !items.find(function(x){ return x.serial === serial; })) {
+            items.push({ serial:serial, manufacturer:'', mfrOther:'', machineType:'', typeOther:'', hasTag:null, tagNumber:'' });
+            added++;
+          }
+        });
+        renderItems();
+        this.value = '';
+        flashHint('Added ' + added + ' item' + (added !== 1 ? 's' : ''));
+      } else {
+        this.value = text;
+      }
+    });
+
+    function addSerial() {
+      var input = document.getElementById('serial-input');
+      var serial = input.value.trim().toUpperCase();
+      if (!serial) return;
+      if (items.find(function(x){ return x.serial === serial; })) {
+        flashHint('Already added: ' + serial, true); input.value = ''; return;
+      }
+      items.push({ serial:serial, manufacturer:'', mfrOther:'', machineType:'', typeOther:'', hasTag:null, tagNumber:'' });
+      renderItems();
+      input.value = '';
+      input.focus();
+      flashHint('Added ' + serial);
+    }
+
+    function removeItem(idx) {
+      items.splice(idx, 1);
+      renderItems();
+    }
+
+    function renderItems() {
+      var tbody = document.getElementById('item-tbody');
+      var empty = document.getElementById('item-table-empty');
+      var wrap  = document.getElementById('item-table-wrap');
+      var count = document.getElementById('item-count');
+      if (items.length === 0) { empty.style.display = ''; wrap.style.display = 'none'; count.textContent = ''; return; }
+      empty.style.display = 'none'; wrap.style.display = '';
+      tbody.innerHTML = '';
+      items.forEach(function(item, idx) {
+        var mfrOptions = MANUFACTURERS.map(function(m) {
+          return '<option value="' + m + '"' + (item.manufacturer === m ? ' selected' : '') + '>' + m + '</option>';
+        }).join('');
+        var typeOptions = MACHINE_TYPES.map(function(t) {
+          return '<option value="' + t + '"' + (item.machineType === t ? ' selected' : '') + '>' + t + '</option>';
+        }).join('');
+
+        var tr = document.createElement('tr');
+
+        // # col
+        var tdNum = document.createElement('td');
+        tdNum.style.color = '#94a3b8'; tdNum.style.fontSize = '11px';
+        tdNum.textContent = idx + 1; tr.appendChild(tdNum);
+
+        // Serial col
+        var tdSerial = document.createElement('td');
+        tdSerial.className = 'item-serial'; tdSerial.textContent = item.serial; tr.appendChild(tdSerial);
+
+        // Manufacturer col
+        var tdMfr = document.createElement('td');
+        var mfrSel = document.createElement('select');
+        mfrSel.id = 'mfr-' + idx; mfrSel.className = 'item-select';
+        mfrSel.innerHTML = '<option value="">— Select —</option>' + mfrOptions;
+        mfrSel.onchange = function() {
+          items[idx].manufacturer = this.value;
+          var ow = document.getElementById('mfr-other-wrap-' + idx);
+          if (ow) ow.style.display = this.value === 'Other' ? '' : 'none';
+          this.classList.remove('error');
+        };
+        tdMfr.appendChild(mfrSel);
+        if (item.manufacturer === 'Other') {
+          var mfrOtherWrap = document.createElement('div');
+          mfrOtherWrap.id = 'mfr-other-wrap-' + idx;
+          var mfrOther = document.createElement('input');
+          mfrOther.type = 'text'; mfrOther.id = 'mfr-other-' + idx;
+          mfrOther.className = 'item-other-input'; mfrOther.placeholder = 'Enter manufacturer';
+          mfrOther.value = item.mfrOther || '';
+          mfrOther.oninput = function() { items[idx].mfrOther = this.value; this.classList.remove('error'); };
+          mfrOtherWrap.appendChild(mfrOther); tdMfr.appendChild(mfrOtherWrap);
+        } else {
+          var mfrOtherWrap2 = document.createElement('div');
+          mfrOtherWrap2.id = 'mfr-other-wrap-' + idx; mfrOtherWrap2.style.display = 'none';
+          var mfrOther2 = document.createElement('input');
+          mfrOther2.type = 'text'; mfrOther2.id = 'mfr-other-' + idx;
+          mfrOther2.className = 'item-other-input'; mfrOther2.placeholder = 'Enter manufacturer';
+          mfrOther2.oninput = function() { items[idx].mfrOther = this.value; this.classList.remove('error'); };
+          mfrOtherWrap2.appendChild(mfrOther2); tdMfr.appendChild(mfrOtherWrap2);
+        }
+        tr.appendChild(tdMfr);
+
+        // Machine Type col
+        var tdType = document.createElement('td');
+        var typeSel = document.createElement('select');
+        typeSel.id = 'type-' + idx; typeSel.className = 'item-select';
+        typeSel.innerHTML = '<option value="">— Select —</option>' + typeOptions;
+        typeSel.onchange = function() {
+          items[idx].machineType = this.value;
+          var ow = document.getElementById('type-other-wrap-' + idx);
+          if (ow) ow.style.display = this.value === 'Other' ? '' : 'none';
+          this.classList.remove('error');
+        };
+        tdType.appendChild(typeSel);
+        var typeOtherWrap = document.createElement('div');
+        typeOtherWrap.id = 'type-other-wrap-' + idx;
+        typeOtherWrap.style.display = item.machineType === 'Other' ? '' : 'none';
+        var typeOther = document.createElement('input');
+        typeOther.type = 'text'; typeOther.id = 'type-other-' + idx;
+        typeOther.className = 'item-other-input'; typeOther.placeholder = 'Enter machine type';
+        typeOther.value = item.typeOther || '';
+        typeOther.oninput = function() { items[idx].typeOther = this.value; this.classList.remove('error'); };
+        typeOtherWrap.appendChild(typeOther); tdType.appendChild(typeOtherWrap);
+        tr.appendChild(tdType);
+
+        // Asset Tag col
+        var tdTag = document.createElement('td');
+        var tagGroup = document.createElement('div'); tagGroup.className = 'tag-group';
+        ['yes','no'].forEach(function(val) {
+          var lbl = document.createElement('label'); lbl.className = 'tag-radio-label';
+          var inp = document.createElement('input');
+          inp.type = 'radio'; inp.name = 'tag-' + idx; inp.value = val;
+          if (item.hasTag === val) inp.checked = true;
+          inp.onchange = function() {
+            items[idx].hasTag = val;
+            tagGroup.style.outline = '';
+            var tw = document.getElementById('tag-input-wrap-' + idx);
+            if (tw) tw.style.display = val === 'yes' ? '' : 'none';
+          };
+          lbl.appendChild(inp);
+          lbl.appendChild(document.createTextNode(val === 'yes' ? 'Yes' : 'No'));
+          tagGroup.appendChild(lbl);
+        });
+        tdTag.appendChild(tagGroup);
+        var tagInputWrap = document.createElement('div');
+        tagInputWrap.id = 'tag-input-wrap-' + idx; tagInputWrap.className = 'tag-input-wrap';
+        tagInputWrap.style.display = item.hasTag === 'yes' ? '' : 'none';
+        var tagInput = document.createElement('input');
+        tagInput.type = 'text'; tagInput.id = 'tag-number-' + idx;
+        tagInput.className = 'tag-number-input'; tagInput.placeholder = 'Asset tag number';
+        tagInput.value = item.tagNumber || '';
+        tagInput.oninput = function() { items[idx].tagNumber = this.value; this.classList.remove('error'); };
+        tagInputWrap.appendChild(tagInput); tdTag.appendChild(tagInputWrap);
+        tr.appendChild(tdTag);
+
+        // Remove col
+        var tdRemove = document.createElement('td');
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button'; removeBtn.className = 'remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = function() { removeItem(idx); };
+        tdRemove.appendChild(removeBtn); tr.appendChild(tdRemove);
+
+        tbody.appendChild(tr);
+      });
+      count.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' listed';
+    }
+
+    var flashTimer = null;
+    function flashHint(msg, isWarn) {
+      var hint = document.getElementById('paste-hint');
+      hint.textContent = (isWarn ? '⚠ ' : '✓ ') + msg;
+      hint.style.color = isWarn ? '#dc2626' : '#166634';
+      if (flashTimer) clearTimeout(flashTimer);
+      flashTimer = setTimeout(function() {
+        hint.textContent = '💡 Tip: Paste a copied column from Excel to add multiple serials at once.';
+        hint.style.color = '';
+      }, 2500);
+    }
+
+    // ── Validation ───────────────────────────────────────────────────
+    function validateField(id, errorId, checkFn) {
+      var input = document.getElementById(id);
+      var error = document.getElementById(errorId);
+      var ok = checkFn(input.value.trim());
+      if (!ok) { input.classList.add('error'); error.classList.add('show'); }
+      else      { input.classList.remove('error'); error.classList.remove('show'); }
+      return ok;
+    }
+    function isValidEmail(v) { return v.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+    function isNotEmpty(v) { return v.length > 0; }
+
+    ['req-name','email','phone','building','room'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', function() {
+        el.classList.remove('error');
+        var err = document.getElementById(id + '-error');
+        if (err) err.classList.remove('show');
+      });
+    });
+
+    // ── CSV generation ───────────────────────────────────────────────
+    function buildCsv(data) {
+      var headers = [
+        'Title','Description','RequestorName','RequestorEmail','RequestorPhone','RequestorDepartment',
+        'Location','Campus','RoomNumber','SerialNumbers','ItemCount',
+        'CountMonitors','CountPrinters','CountMiscBoxes','CountDriveBoxes',
+        'AdditionalInfo','SubmittedAt','Source'
+      ];
+
+      var itemLines = data.items.map(function(item, i) {
+        var line = '  ' + (i+1) + '. ' + item.serial + ' — ' + (item.manufacturer || '?') + ' ' + (item.machineType || '?');
+        if (item.hasTag) line += ' [Asset Tag: ' + (item.tagNumber || 'listed') + ']';
+        return line;
+      });
+
+      var description =
+        'IT Asset Disposal Request\n' +
+        'Submitted: ' + data.submittedAt + '\n' +
+        '\nContact\n' +
+        '  Name:       ' + data.reqName + '\n' +
+        '  Email:      ' + data.email + '\n' +
+        '  Phone:      ' + data.phone + '\n' +
+        '  Department: ' + (data.department || '—') + '\n' +
+        '\nPickup Location\n' +
+        '  Building: ' + data.building + '\n' +
+        (data.campus ? '  Campus:   ' + data.campus + '\n' : '') +
+        '  Room:     ' + data.room + '\n' +
+        '\nItems (' + data.items.length + ')\n' +
+        (data.items.length > 0 ? itemLines.join('\n') : '  None listed') + '\n' +
+        '\nNon-Serialized Item Counts\n' +
+        '  LCD/Flat Panel Monitors:       ' + data.counts.monitors + '\n' +
+        '  Printers:                      ' + data.counts.printers + '\n' +
+        '  Boxes of Misc Items:           ' + data.counts.misc + '\n' +
+        '  Boxes of Hard Drives/Devices:  ' + data.counts.drives + '\n' +
+        (data.notes ? '\nAdditional Information\n  ' + data.notes + '\n' : '') +
+        '\n---\nGenerated by AssetTrack Disposal Request Form';
+
+      var title = 'IT Asset Disposal — ' + data.building + ', Room ' + data.room + ' (' + data.submittedAt.split(',')[0] + ')';
+      var serialNumbers = data.items.map(function(item){ return item.serial; }).join('; ');
+
+      var row = [
+        title, description,
+        data.reqName, data.email, data.phone, data.department||'',
+        data.building, data.campus||'', data.room,
+        serialNumbers, String(data.items.length),
+        String(data.counts.monitors), String(data.counts.printers),
+        String(data.counts.misc), String(data.counts.drives),
+        data.notes, data.submittedAt, 'AssetTrack Disposal Form'
+      ];
+
+      function csvCell(v) {
+        var s = String(v == null ? '' : v);
+        if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+          return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      }
+      return headers.map(csvCell).join(',') + '\r\n' + row.map(csvCell).join(',') + '\r\n';
+    }
+
+    function downloadCsv(csvData, fileName) {
+      var blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileName; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function downloadAgain() { if (lastCsvData && lastFileName) downloadCsv(lastCsvData, lastFileName); }
+
+    // ── Form submit ──────────────────────────────────────────────────
+    document.getElementById('disposal-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var ok = true;
+      ok = validateField('req-name',  'req-name-error', isNotEmpty)   && ok;
+      ok = validateField('email',     'email-error',    isValidEmail)  && ok;
+      ok = validateField('phone',     'phone-error',    isNotEmpty)    && ok;
+      ok = validateField('building',  'building-error', isNotEmpty)    && ok;
+      ok = validateField('room',      'room-error',     isNotEmpty)    && ok;
+
+      items.forEach(function(item, idx) {
+        var mfrSel = document.getElementById('mfr-' + idx);
+        if (!item.manufacturer) { if(mfrSel) mfrSel.classList.add('error'); ok = false; }
+        if (item.manufacturer === 'Other' && !item.mfrOther.trim()) {
+          var mfrOther = document.getElementById('mfr-other-' + idx);
+          if(mfrOther) mfrOther.classList.add('error'); ok = false;
+        }
+        var typeSel = document.getElementById('type-' + idx);
+        if (!item.machineType) { if(typeSel) typeSel.classList.add('error'); ok = false; }
+        if (item.machineType === 'Other' && !item.typeOther.trim()) {
+          var typeOther = document.getElementById('type-other-' + idx);
+          if(typeOther) typeOther.classList.add('error'); ok = false;
+        }
+        if (item.hasTag === null) {
+          var tagGroup = document.querySelector('#item-tbody tr:nth-child(' + (idx+1) + ') .tag-group');
+          if(tagGroup) { tagGroup.style.outline = '2px solid #ef4444'; tagGroup.style.borderRadius = '4px'; }
+          ok = false;
+        }
+        if (item.hasTag === 'yes' && !item.tagNumber.trim()) {
+          var tagNum = document.getElementById('tag-number-' + idx);
+          if(tagNum) tagNum.classList.add('error'); ok = false;
+        }
+      });
+
+      if (!ok) {
+        var firstErr = document.querySelector('.error, [style*="outline: 2px solid"]');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      var now = new Date();
+      var submittedAt = now.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      var refNo = 'ITAD-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
+
+      var buildingVal = document.getElementById('building').value.trim();
+      var loc = _locations.find(function(l){ return l.name === buildingVal; });
+
+      var data = {
+        reqName:    document.getElementById('req-name').value.trim(),
+        email:      document.getElementById('email').value.trim(),
+        phone:      document.getElementById('phone').value.trim(),
+        department: document.getElementById('department').value.trim(),
+        building:   buildingVal,
+        campus:     loc ? (loc.campus || '') : '',
+        room:       document.getElementById('room').value.trim(),
+        notes:      document.getElementById('notes').value.trim(),
+        counts: {
+          monitors: parseInt(document.getElementById('count-monitors').value) || 0,
+          printers: parseInt(document.getElementById('count-printers').value) || 0,
+          misc:     parseInt(document.getElementById('count-misc').value)     || 0,
+          drives:   parseInt(document.getElementById('count-drives').value)   || 0,
+        },
+        items: items.map(function(item) {
+          return {
+            serial:       item.serial,
+            manufacturer: item.manufacturer === 'Other' ? item.mfrOther : item.manufacturer,
+            machineType:  item.machineType  === 'Other' ? item.typeOther : item.machineType,
+            hasTag:       item.hasTag === 'yes',
+            tagNumber:    item.tagNumber,
+          };
+        }),
+        submittedAt: submittedAt,
+        refNo: refNo,
+      };
+
+      var csvData = buildCsv(data);
+      var fileName = refNo + '.csv';
+      lastCsvData = csvData; lastFileName = fileName;
+      downloadCsv(csvData, fileName);
+
+      // Write submission to Firestore as a pending ticket
+      var pendingTicket = {
+        id:            refNo,
+        ticketNo:      '',
+        date:          new Date().toISOString().slice(0,10),
+        site:          data.building + (data.room ? ' — Room ' + data.room : ''),
+        requestor:     data.reqName || data.email,
+        phone:         data.phone,
+        notes:         data.notes + (data.notes ? '\n' : '') + 'ITAD Ref: ' + refNo,
+        expectedAssets: data.items.map(function(item) {
+          return { serial: item.serial, manufacturer: item.manufacturer, machineType: item.machineType, ouInventory: item.hasTag ? item.tagNumber : '', addedAt: submittedAt, duplicate: false };
+        }),
+        itemCounts: { lcdMonitors: data.counts.monitors, printers: data.counts.printers, miscBoxes: data.counts.misc, hardDriveBoxes: data.counts.drives },
+        _campus:     data.campus,
+        _department: data.department,
+        _requestorEmail: data.email,
+        _importedFrom: refNo + '.csv',
+        pickupScanned: false, pickupResult: null, assets: [],
+        submittedViaForm: true,
+        submittedAt: submittedAt,
+      };
+      db.collection('tickets').doc(refNo).set(pendingTicket).catch(function(e){ console.warn('Firestore write failed:', e); });
+
+      document.getElementById('disposal-form').style.display = 'none';
+      document.getElementById('success-ref').textContent = 'Reference: ' + refNo;
+      document.getElementById('success-card').classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    function resetForm() {
+      document.getElementById('disposal-form').reset();
+      items = []; renderItems();
+      lastCsvData = null; lastFileName = null;
+      document.getElementById('campus-badge').style.display = 'none';
+      ['req-name','email','phone','building','room'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('error');
+        var err = document.getElementById(id + '-error');
+        if (err) err.classList.remove('show');
+      });
+      document.getElementById('success-card').classList.remove('show');
+      document.getElementById('disposal-form').style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
